@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixelation - Site Status Checker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            opacity: 0.04;
+            pointer-events: none;
+            z-index: 1;
+            background-image: radial-gradient(#ffffff 1px, transparent 0), radial-gradient(#ffffff 1px, transparent 0);
+            background-size: 8px 8px;
+            background-position: 0 0, 4px 4px;
+        }
+
+        .dashboard-card {
+            background: rgba(22, 27, 34, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 30px;
+            width: 100%;
+            max-width: 550px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            z-index: 2;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 24px;
+            margin-top: 0;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #21262d;
+            padding-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            background: rgba(33, 38, 45, 0.5);
+            margin-bottom: 12px;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 5px solid #30363d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s ease;
+        }
+
+        li:hover {
+            transform: translateX(4px);
+            background: rgba(33, 38, 45, 0.8);
+        }
+
+        li.online { border-left-color: #2ea44f; }
+        li.issue { border-left-color: #d29922; }
+        li.down { border-left-color: #f85149; }
+
+        .site-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .site-url {
+            font-weight: 500;
+            color: #58a6ff;
+            word-break: break-all;
+        }
+
+        .site-latency {
+            font-size: 12px;
+            color: #8b949e;
+        }
+
+        .status-badge {
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 4px 8px;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .badge-online { background-color: rgba(46, 164, 79, 0.15); color: #56d364; }
+        .badge-issue { background-color: rgba(210, 153, 34, 0.15); color: #e3b341; }
+        .badge-down { background-color: rgba(248, 81, 73, 0.15); color: #ff7b72; }
+
+        .footer-note {
+            text-align: center;
+            color: #8b949e;
+            font-size: 12px;
+            margin-top: 25px;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .summary {
+            color: #8b949e;
+            font-size: 13px;
+        }
+
+        .summary strong { color: #56d364; }
+
+        .refresh-button {
+            border: 1px solid #30363d;
+            border-radius: 7px;
+            padding: 8px 12px;
+            background: #21262d;
+            color: #c9d1d9;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .refresh-button:hover, .refresh-button:focus-visible { background: #30363d; }
+
+        .site-error { color: #ff7b72; }
+
+        .offline-state {
+            display: grid;
+            place-items: center;
+            align-items: center;
+        }
+
+        .offline-panel {
+            width: min(100%, 560px);
+            padding: 40px;
+            text-align: center;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 16px;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+        }
+
+        .offline-panel .signal { color: #e3b341; font-size: 14px; font-weight: 700; letter-spacing: 0.12em; }
+        .offline-panel h1 { border: 0; margin: 12px 0; padding: 0; }
+        .offline-panel p { color: #8b949e; line-height: 1.6; }
+        .offline-panel button { border: 0; border-radius: 7px; padding: 11px 17px; background: #238636; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+
+        @media (max-width: 520px) {
+            body { padding: 20px 12px; align-items: start; }
+            .dashboard-card { padding: 22px 16px; margin-top: 12px; }
+            li { align-items: flex-start; gap: 12px; padding: 14px 12px; }
+            .status-badge { white-space: normal; text-align: right; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            li { transition: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-card">
+        <h1>Pixelation - Site Status Checker</h1>
+        <div class="toolbar">
+            <div class="summary" id="summary" aria-live="polite">
+                <strong>{{ summary.online }}</strong> online
+                <span aria-hidden="true">&middot;</span>
+                {{ summary.issue }} issue{{ '' if summary.issue == 1 else 's' }}
+                <span aria-hidden="true">&middot;</span>
+                {{ summary.down }} down
+            </div>
+            <button class="refresh-button" id="refresh-button" type="button">Refresh now</button>
+        </div>
+        <ul>
+            {% for site in sites_data %}
+                <li class="{{ site.class_type }}" data-site-url="{{ site.url }}">
+                    <div class="site-info">
+                        <span class="site-url">{{ site.url }}</span>
+                        {% if site.latency is not none %}
+                            <span class="site-latency">Response time: {{ site.latency }}ms</span>
+                        {% elif site.error %}
+                            <span class="site-latency site-error">{{ site.error }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="status-badge badge-{{ site.class_type }}" data-status>
+                        {{ site.status_text }}
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+        <p class="footer-note">Last checked <time id="checked-at" datetime="{{ checked_at }}">{{ checked_at }}</time>. Auto-refreshing in <span id="countdown">30</span> seconds...</p>
+    </div>
+
+        <!-- JavaScript Countdown Engine -->
+    <script>
+        let timeLeft = 30;
+        const countdownElement = document.getElementById('countdown');
+        const refreshButton = document.getElementById('refresh-button');
+        const checkedAtElement = document.getElementById('checked-at');
+
+        checkedAtElement.textContent = new Date(checkedAtElement.dateTime).toLocaleTimeString();
+
+        function showOfflineState() {
+            document.body.className = 'offline-state';
+            document.body.innerHTML = `
+                <main class="offline-panel">
+                    <div class="signal">CONNECTION INTERRUPTED</div>
+                    <h1>The dashboard is offline</h1>
+                    <p>The monitoring server has stopped or cannot be reached right now. Start Flask again, then try again.</p>
+                    <button type="button" id="offline-retry">Try again</button>
+                </main>
+            `;
+            document.getElementById('offline-retry').addEventListener('click', () => window.location.reload());
+        }
+
+        function refreshStatus() {
+            refreshButton.disabled = true;
+            fetch('/api/status', { headers: { Accept: 'application/json' } })
+                .then((response) => {
+                    if (!response.ok) throw new Error('Status request failed');
+                    return response.json();
+                })
+                .then((data) => {
+                    data.sites.forEach((site) => {
+                        const row = document.querySelector(`[data-site-url="${site.url}"]`);
+                        if (!row) return;
+                        row.className = site.class_type;
+                        const status = row.querySelector('[data-status]');
+                        status.className = `status-badge badge-${site.class_type}`;
+                        status.textContent = site.status_text;
+                        const detail = row.querySelector('.site-latency');
+                        detail.textContent = site.latency === null ? site.error : `Response time: ${site.latency}ms`;
+                        detail.className = site.latency === null ? 'site-latency site-error' : 'site-latency';
+                    });
+                    document.getElementById('summary').innerHTML = `<strong>${data.summary.online}</strong> online <span aria-hidden="true">&middot;</span> ${data.summary.issue} issue${data.summary.issue === 1 ? '' : 's'} <span aria-hidden="true">&middot;</span> ${data.summary.down} down`;
+                    checkedAtElement.dateTime = data.checked_at;
+                    checkedAtElement.textContent = new Date(data.checked_at).toLocaleTimeString();
+                    timeLeft = 30;
+                    refreshButton.disabled = false;
+                })
+                .catch(() => {
+                    showOfflineState();
+                });
+        }
+
+        refreshButton.addEventListener('click', refreshStatus);
+
+        // This runs once every second (1000 milliseconds)
+        const timer = setInterval(() => {
+            timeLeft--;
+            countdownElement.textContent = timeLeft;
+            
+            // CRITICAL FIX: Only refresh when time completely runs out!
+            if (timeLeft <= 0) {
+                clearInterval(timer); // Stops the timer loop
+                refreshStatus();
+            }
+        }, 1000);
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/service-worker.js').catch(() => {});
+        }
+    </script>
+
+
+</body>
+</html>

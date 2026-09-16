@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ error_code }} - Pixelation</title>
+    <style>
+        :root { color-scheme: dark; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background: #0d1117;
+            color: #c9d1d9;
+            font-family: "Segoe UI", Tahoma, sans-serif;
+        }
+        main {
+            width: min(100%, 560px);
+            padding: 40px;
+            text-align: center;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 16px;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+        }
+        .code { color: #ff7b72; font-size: 14px; font-weight: 700; letter-spacing: 0.12em; }
+        h1 { margin: 12px 0; color: #fff; font-size: clamp(28px, 6vw, 42px); }
+        p { margin: 0 auto 28px; max-width: 420px; color: #8b949e; line-height: 1.6; }
+        a, button {
+            display: inline-block;
+            border: 0;
+            border-radius: 7px;
+            padding: 11px 17px;
+            background: #238636;
+            color: #fff;
+            font: inherit;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        button { margin-left: 8px; background: #30363d; }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="code">ERROR {{ error_code }}</div>
+        <h1>{{ error_title }}</h1>
+        <p>The status dashboard could not complete that request. Try returning to the dashboard or refresh the page.</p>
+        <a href="/">Back to dashboard</a>
+        <button type="button" onclick="location.reload()">Try again</button>
+    </main>
+</body>
+</html>
